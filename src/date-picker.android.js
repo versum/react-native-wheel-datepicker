@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { ColorPropType, StyleSheet, View, ViewPropTypes as RNViewPropTypes } from 'react-native';
 import PropTypes from 'prop-types';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import Picker from './picker';
 
 const ViewPropTypes = RNViewPropTypes || View.propTypes;
@@ -21,6 +21,10 @@ const stylesFromProps = props => ({
   textSize: props.textSize,
   style: props.style,
 });
+
+const buildMoment = (...args) => {
+  return moment.tz(...args, moment.tz.guess());
+}
 
 export default class DatePicker extends PureComponent {
   static propTypes = {
@@ -45,8 +49,8 @@ export default class DatePicker extends PureComponent {
     labelUnit: { year: '', month: '', date: '' },
     order: 'D-M-Y',
     mode: 'date',
-    maximumDate: moment().add(10, 'years').toDate(),
-    minimumDate: moment().add(-10, 'years').toDate(),
+    maximumDate: buildMoment().add(10, 'years').toDate(),
+    minimumDate: buildMoment().add(-10, 'years').toDate(),
     date: new Date(),
     style: null,
     textColor: '#333',
@@ -65,7 +69,7 @@ export default class DatePicker extends PureComponent {
 
     this.parseDate(date);
 
-    const mdate = moment(date);
+    const mdate = buildMoment(date);
 
     const dayNum = mdate.daysInMonth();
     this.state.dayRange = this.genDateRange(dayNum);
@@ -93,7 +97,7 @@ export default class DatePicker extends PureComponent {
   }
 
   parseDate = (date) => {
-    const mdate = moment(date);
+    const mdate = buildMoment(date);
 
     ['year', 'month', 'date', 'hour', 'minute'].forEach((s) => { this.newValue[s] = mdate.get(s); });
   }
@@ -245,7 +249,7 @@ export default class DatePicker extends PureComponent {
     let dayNum = dayRange.length;
 
     if (oldMonth !== currentMonth || oldYear !== currentYear) {
-      dayNum = moment(`${currentYear}-${currentMonth + 1}`, 'YYYY-MM').daysInMonth();
+      dayNum = buildMoment(`${currentYear}-${currentMonth + 1}`, 'YYYY-MM').daysInMonth();
     }
 
     if (dayNum !== dayRange.length) {
@@ -261,9 +265,9 @@ export default class DatePicker extends PureComponent {
 
     const unit = this.props.mode === 'date' ? 'day' : undefined;
     const current = Object.assign({}, this.newValue, { date: this.newValue.date });
-    let currentTime = moment(current);
-    const min = moment(this.props.minimumDate);
-    const max = moment(this.props.maximumDate);
+    let currentTime = buildMoment(current);
+    const min = buildMoment(this.props.minimumDate);
+    const max = buildMoment(this.props.maximumDate);
     let isCurrentTimeChanged = false;
 
     if (currentTime.isBefore(min, unit)) {
